@@ -86,7 +86,11 @@ then	# Si le conteneur existe déjà
 fi
 
 echo -e "\e[1m> Création d'une machine debian $DISTRIB minimaliste.\e[0m" | tee -a "$LOG_BUILD_LXC"
-sudo lxc-create -B best -n $LXC_NAME -t debian -- -r $DISTRIB >> "$LOG_BUILD_LXC" 2>&1
+fstype=$(df --output=fstype /var/lib/lxc/ | tail -n 1)
+if [ "$fstype" != "btrfs" ]; then
+	fstype="dir"
+fi
+sudo lxc-create -B $fstype -n $LXC_NAME -t debian -- -r $DISTRIB >> "$LOG_BUILD_LXC" 2>&1
 
 echo -e "\e[1m> Autoriser l'ip forwarding, pour router vers la machine virtuelle.\e[0m" | tee -a "$LOG_BUILD_LXC"
 echo "net.ipv4.ip_forward=1" | sudo tee /etc/sysctl.d/lxc_pchecker.conf >> "$LOG_BUILD_LXC" 2>&1
